@@ -113,6 +113,10 @@ La priorité est donnée à l'angle du pendule (100), puis au retour du chariot 
   <img src="figures/04_lqr_simple_50deg_echec.png" width="400">
 </p>
 
+<p align="center">
+  <img src="figures/08_anim_simple.gif" width="650">
+</p>
+
 Le pendule simple **tolère une saturation temporaire** : jusqu'à 45°, le moteur reste bloqué à 10 N pendant une fraction de seconde mais le pendule est rattrapé. Sur un banc réel, la longueur des rails serait cependant la contrainte la plus limitante.
 
 ---
