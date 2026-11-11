@@ -195,7 +195,7 @@ Les paramètres `angle0` (angle initial) et `Fmax` (saturation) se modifient en 
 
 ## 6. Prochaines étapes
 
-- [ ] Animation du chariot et des barres
+- [x] Animation du chariot et des barres
 - [ ] Swing-up par contrôle de l'énergie (pendule simple)
 - [ ] Observateur de Kalman (mesure de x et θ seulement)
 - [ ] Validation du modèle dans Simscape Multibody
