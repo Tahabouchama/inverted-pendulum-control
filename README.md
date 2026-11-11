@@ -3,7 +3,7 @@
 Modélisation par les équations de Lagrange, commande optimale LQR et étude des limites en présence de saturation de l'actionneur — MATLAB.
 
 <p align="center">
-  <img src="figures/06_lqr_double_15deg.png" width="650">
+  <img src="figures/09_anim_double.gif" width="650">
 </p>
 
 ## Points clés
