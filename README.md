@@ -51,12 +51,9 @@ $$
 
 **Linéarisation** autour de la position haute ($\sin\theta \approx \theta$, $\cos\theta \approx 1$, $\dot{\theta}^2 \approx 0$) :
 
-$$
-\begin{bmatrix} M+m & ml \\ ml & J+ml^2 \end{bmatrix}
-\begin{bmatrix} \ddot{x} \\ \ddot{\theta} \end{bmatrix}
-=
-\begin{bmatrix} F - b\dot{x} \\ mgl\,\theta \end{bmatrix}
-$$
+$$(M+m)\ddot{x} + ml\,\ddot{\theta} + b\dot{x} = F$$
+
+$$ml\,\ddot{x} + (J+ml^2)\ddot{\theta} - mgl\,\theta = 0$$
 
 L'inversion de la matrice de masse donne la représentation d'état $\dot{X} = AX + BF$.
 
