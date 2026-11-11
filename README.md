@@ -201,5 +201,5 @@ Les paramètres `angle0` (angle initial) et `Fmax` (saturation) se modifient en 
 
 ---
 
-**Auteur :** Taha [Nom] — Master 1 AM2AS (Automatique, Mécatronique, Aéronautique & Spatial), Université de Bordeaux
-[LinkedIn](https://www.linkedin.com/in/ton-profil)
+**Auteur :** Taha Bouchama — Master 1 AM2AS (Automatique, Mécatronique, Aéronautique & Spatial), Université de Bordeaux
+[LinkedIn](https://www.linkedin.com/in/taha-bouchama-981085266/)
