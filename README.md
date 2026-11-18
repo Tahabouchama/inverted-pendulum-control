@@ -20,8 +20,12 @@ src/
 ├── derive_eom.m          Modèle du pendule simple (Lagrange, linéarisation, validation)
 ├── derive_eom_nlink.m    Modèle générique à N barres (utilisé avec N = 2)
 ├── lqr_pendule.m         Commande LQR du pendule simple
-└── lqr_double.m          Commande LQR du double pendule
-figures/                  Résultats de simulation
+├── lqr_double.m          Commande LQR du double pendule
+├── animate_pendulum.m    Animation (GIF) du pendule simple ou double
+├── swingup_pendule.m     Swing-up du pendule simple (pompage d'énergie + LQR)
+├── traj_opt_double.m     Swing-up du double pendule : optimisation de trajectoire
+└── tvlqr_double.m        Swing-up du double pendule : suivi TVLQR + LQR
+figures/                  Résultats de simulation et animations
 ```
 
 ---
