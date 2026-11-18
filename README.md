@@ -12,7 +12,7 @@ Modélisation par les équations de Lagrange, commande optimale LQR et étude de
 - Validation du modèle : **conservation de l'énergie** (dérive < 1e-8 J sans frottement) et cohérence des pôles avec le calcul manuel
 - Commande **LQR** conçue sur le modèle linéarisé, testée sur le modèle **non linéaire complet**
 - Étude de la **saturation moteur** (±10 N) : domaine de stabilisation de **45°** pour le pendule simple contre **15°** pour le double pendule
-
+- **Swing-up** depuis la position basse : pompage d'énergie pour le pendule simple, optimisation de trajectoire (collocation directe) et suivi par **TVLQR** pour le double pendule, robuste à une perturbation initiale de 45°
 ## Contenu du dépôt
 
 ```
