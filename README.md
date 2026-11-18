@@ -13,6 +13,8 @@ Modélisation par les équations de Lagrange, commande optimale LQR et étude de
 - Commande **LQR** conçue sur le modèle linéarisé, testée sur le modèle **non linéaire complet**
 - Étude de la **saturation moteur** (±10 N) : domaine de stabilisation de **45°** pour le pendule simple contre **15°** pour le double pendule
 - **Swing-up** depuis la position basse : pompage d'énergie pour le pendule simple, optimisation de trajectoire (collocation directe) et suivi par **TVLQR** pour le double pendule, robuste à une perturbation initiale de 45°
+- **Filtre de Kalman** sur mesures bruitées de x et θ (commande LQG à 100 Hz) : bruit sur la force divisé par 11 par rapport à la dérivation des mesures
+
 ## Contenu du dépôt
 
 ```
@@ -24,7 +26,9 @@ src/
 ├── animate_pendulum.m    Animation (GIF) du pendule simple ou double
 ├── swingup_pendule.m     Swing-up du pendule simple (pompage d'énergie + LQR)
 ├── traj_opt_double.m     Swing-up du double pendule : optimisation de trajectoire
-└── tvlqr_double.m        Swing-up du double pendule : suivi TVLQR + LQR
+├── tvlqr_double.m        Swing-up du double pendule : suivi TVLQR + LQR
+├── kalman_pendule.m      Mesures bruitées : dérivation vs filtre de Kalman (LQG)
+
 figures/                  Résultats de simulation et animations
 ```
 
@@ -269,8 +273,49 @@ Les angles suivent la trajectoire planifiée et finissent à +0,34°. La correct
 Le LQR seul ne tolère que 15° d'écart près de la position haute, alors que le TVLQR rejette une erreur de 45° au départ. **Une même erreur n'a pas le même poids selon l'endroit de la trajectoire** : en bas, le système est stable et le contrôleur a le temps de corriger avant la phase critique.
  
 **Limite identifiée :** à 80°, l'erreur de suivi n'est pas résorbée avant la fin de la manœuvre et l'état final sort du domaine de stabilisation du LQR haut. Augmenter le poids des angles (Q = 1000) aggrave l'échec : le contrôleur réclame davantage de force et le moteur reste saturé à 10 N pendant plus d'une seconde. La limite vient donc de la saturation de l'actionneur. Pour aller au-delà, il faudrait replanifier une nouvelle trajectoire depuis l'état réel, ou disposer d'un moteur plus puissant.
+## 6. Mesures bruitées : filtre de Kalman (LQG)
+ 
+Sur un banc réel, seules les positions x et θ sont mesurées, par des codeurs bruités. Les vitesses, nécessaires au gain LQR, doivent être estimées. Le script `kalman_pendule.m` compare trois versions de la même commande LQR du pendule simple :
+ 
+1. l'état réel complet (cas idéal, référence) ;
+2. les vitesses obtenues en dérivant les mesures ;
+3. l'état estimé par un filtre de Kalman, soit une commande **LQG**.
+**Conditions :** commande numérique à 100 Hz, bruit de 0,5 mm sur x et de 0,2° sur θ, saturation à 10 N, départ à 10° et poussée de 5 N pendant 0,1 s à t = 2 s.
+ 
+À chaque pas, le filtre **prédit** l'état à partir du modèle discret, puis le **corrige** avec la mesure :
+ 
+$$\hat{x}_k^- = A_d\,\hat{x}_{k-1} + B_d\,u_{k-1} \qquad \hat{x}_k = \hat{x}_k^- + L\,(y_k - C\,\hat{x}_k^-)$$
+ 
+Le gain L est obtenu par l'équation de Riccati discrète, à partir de la confiance accordée aux capteurs (bruits des codeurs) et au modèle (forces inconnues d'écart-type σ_w). Par le principe de séparation, le LQR et le filtre sont conçus indépendamment.
+ 
+<p align="center">
+  <img src="figures/15_kalman_comparaison.png" width="600">
+</p>
+| | État réel | Dérivation | Kalman (σ_w = 2 N) |
+|---|---|---|---|
+| θ max après la poussée | 4,91° | 5,11° | 5,84° |
+| Bruit sur θ (écart-type) | 0,072° | 0,121° | 0,139° |
+| Bruit sur la force | 0,01 N | 2,84 N | **0,25 N** |
+| Erreur d'estimation de θ̇ | — | 0,469 rad/s | **0,069 rad/s** |
+ 
+La dérivation stabilise le pendule, mais la force oscille en permanence de plusieurs newtons : sur un moteur réel, cela provoquerait échauffement et vibrations. Le filtre de Kalman **divise ce bruit par 11** et estime la vitesse **7 fois plus précisément**.
+ 
+<p align="center">
+  <img src="figures/16_kalman_vitesse.png" width="600">
+</p>
+**Le compromis du réglage.** σ_w traduit la confiance accordée au modèle :
+ 
+| σ_w | Réaction à la poussée | Bruit sur la force |
+|---|---|---|
+| 0,5 N | lente (θ jusqu'à −7,5°) | très faible |
+| 2 N (retenu) | proche de l'idéal | faible |
+| 5 N | quasi idéale | modéré (±1,5 N) |
+ 
+Un filtre qui fait trop confiance au modèle tarde à « croire » une perturbation imprévue ; un filtre qui fait trop confiance aux mesures laisse passer leur bruit.
+ 
+**Pôles :** l'estimateur possède deux pôles rapides (−61 ± 63i), environ 9 fois plus rapides que ceux de la commande (−7 ± 2,6i), et deux pôles plus lents (−5,3 ± 2i) dans les directions où le filtre privilégie le modèle.
 
-## 6. Utilisation
+## 7. Utilisation
  
 **Prérequis :** MATLAB avec Symbolic Math Toolbox et Control System Toolbox. L'Optimization Toolbox est nécessaire pour le swing-up du double pendule.
  
@@ -283,6 +328,8 @@ cd src
 derive_eom          % modèle, linéarisation et validation
 lqr_pendule         % stabilisation LQR (régler angle0 et Fmax en tête de script)
 swingup_pendule     % swing-up par énergie puis LQR (génère un GIF)
+kalman_pendule      % LQR avec mesures bruitées : dérivation vs Kalman (régler sig_w)
+
  
 % --- Double pendule (derive_eom_nlink.m avec N = 2) ---
 derive_eom_nlink    % modèle à N barres
@@ -301,15 +348,16 @@ animate_pendulum    % GIF de la stabilisation (choisir 'simple' ou 'double')
 | `kE`, `thSw`, `dthSw` | `swingup_pendule` | gain de pompage et seuils de bascule vers le LQR |
 | `T`, `Nn` | `traj_opt_double` | durée de la manœuvre et nombre de noeuds |
 | `dth0` | `tvlqr_double` | perturbation initiale de la barre inférieure [deg] |
+| `sig_w` | `kalman_pendule` | confiance du filtre dans le modèle [N] |
+
  
- 
-## 7. Prochaines étapes
+## 8. Prochaines étapes
  
 - [x] Animation du chariot et des barres
 - [x] Swing-up par contrôle de l'énergie (pendule simple)
 - [x] Swing-up du double pendule (optimisation de trajectoire + TVLQR)
 - [ ] Détection d'échec et nouvelle tentative de swing-up
-- [ ] Observateur de Kalman (mesure de x et θ seulement)
+- [x] Observateur de Kalman (mesure de x et θ seulement)
 - [ ] Validation du modèle dans Simscape Multibody
 
 ---
