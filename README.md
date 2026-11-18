@@ -268,7 +268,7 @@ Les angles suivent la trajectoire planifiée et finissent à +0,34°. La correct
  
 Le LQR seul ne tolère que 15° d'écart près de la position haute, alors que le TVLQR rejette une erreur de 45° au départ. **Une même erreur n'a pas le même poids selon l'endroit de la trajectoire** : en bas, le système est stable et le contrôleur a le temps de corriger avant la phase critique.
  
-**Limite identifiée :** la bascule vers le LQR est déclenchée à un instant fixe (t = 3 s). À 80°, l'erreur n'est pas résorbée à temps et le LQR reçoit un état hors de sa zone de validité. Une bascule conditionnée à l'état (comme pour le pendule simple) rendrait le système plus sûr.
+**Limite identifiée :** à 80°, l'erreur de suivi n'est pas résorbée avant la fin de la manœuvre et l'état final sort du domaine où le LQR de la position haute peut stabiliser le système. Comme le gain TVLQR rejoint exactement le gain LQR à t = T, ce n'est pas la bascule qui est en cause : il faudrait un suivi plus serré, ou une détection de l'échec suivie d'une nouvelle tentative.
 
 ## 6. Utilisation
  
@@ -308,7 +308,7 @@ animate_pendulum    % GIF de la stabilisation (choisir 'simple' ou 'double')
 - [x] Animation du chariot et des barres
 - [x] Swing-up par contrôle de l'énergie (pendule simple)
 - [x] Swing-up du double pendule (optimisation de trajectoire + TVLQR)
-- [ ] Bascule vers le LQR conditionnée à l'état pour le double pendule
+- [ ] Détection d'échec et nouvelle tentative de swing-up
 - [ ] Observateur de Kalman (mesure de x et θ seulement)
 - [ ] Validation du modèle dans Simscape Multibody
 
