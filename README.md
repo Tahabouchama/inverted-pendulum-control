@@ -9,7 +9,7 @@ Modélisation par les équations de Lagrange, commande optimale LQR et étude de
 ## Points clés
 
 - Modèle non linéaire établi **à la main** par les équations de Lagrange, puis automatisé et généralisé à *N* barres avec la Symbolic Math Toolbox
-- Validation du modèle : **conservation de l'énergie** (dérive < 1e-8 J sans frottement) et cohérence des pôles avec le calcul manuel
+- Validation du modèle : conservation de l'énergie (dérive < 1e-8 J sans frottement) et comparaison avec un modèle Simscape Multibody construit indépendamment (écart de 0,02 % sur l'angle)
 - Commande **LQR** conçue sur le modèle linéarisé, testée sur le modèle **non linéaire complet**
 - Étude de la **saturation moteur** (±10 N) : domaine de stabilisation de **45°** pour le pendule simple contre **15°** pour le double pendule
 - **Swing-up** depuis la position basse : pompage d'énergie pour le pendule simple, optimisation de trajectoire (collocation directe) et suivi par **TVLQR** pour le double pendule, robuste à une perturbation initiale de 45°
@@ -28,7 +28,8 @@ src/
 ├── traj_opt_double.m     Swing-up du double pendule : optimisation de trajectoire
 ├── tvlqr_double.m        Swing-up du double pendule : suivi TVLQR + LQR
 ├── kalman_pendule.m      Mesures bruitées : dérivation vs filtre de Kalman (LQG)
-
+├── validation_simscape.m Comparaison du modèle de Lagrange avec Simscape Multibody
+└── pendule_simscape.slx Modèle physique Simscape Multibody du pendule simple
 figures/                  Résultats de simulation et animations
 ```
 
@@ -81,6 +82,16 @@ L'inversion de la matrice de masse donne la représentation d'état $\dot{X} = A
 
 En boucle ouverte, le pendule tombe puis se balance autour de sa position basse. Le chariot bouge en sens inverse du pendule : le centre de gravité commun reste quasiment immobile.
 
+Validation indépendante par Simscape Multibody
+
+Le même système a été reconstruit dans Simscape Multibody (pendule_simscape.slx), sans écrire aucune équation : une glissière pour le chariot, un pivot pour la barre, des solides et la gravité. Le logiciel calcule lui-même la dynamique. Les deux modèles, construits indépendamment, sont comparés en chute libre depuis θ₀ = 0,05 rad pendant 3 s (validation_simscape.m).
+
+<p align="center"> <img src="figures/17_validation_simscape.png" width="600"> </p>
+Écart maximal sur 3 s	Valeur
+Position du chariot x	9,4e-5 m (0,1 mm)
+Angle θ	0,063° pour une amplitude de 347° (0,02 %)
+
+Les trajectoires sont superposées, y compris pendant les grands balancements où le pendule passe par la position basse. L'écart résiduel provient des solveurs numériques et de la section de 1 cm de la barre Simscape, qui ajoute 0,03 % d'inertie. La dérivation des équations de Lagrange est validée : tous les résultats de commande reposent sur ce modèle.
 ---
 
 ## 2. Commande LQR du pendule simple
@@ -326,6 +337,7 @@ cd src
  
 % --- Pendule simple ---
 derive_eom          % modèle, linéarisation et validation
+validation_simscape % comparaison avec le modèle Simscape (nécessite Simscape Multibody)
 lqr_pendule         % stabilisation LQR (régler angle0 et Fmax en tête de script)
 swingup_pendule     % swing-up par énergie puis LQR (génère un GIF)
 kalman_pendule      % LQR avec mesures bruitées : dérivation vs Kalman (régler sig_w)
@@ -356,9 +368,9 @@ animate_pendulum    % GIF de la stabilisation (choisir 'simple' ou 'double')
 - [x] Animation du chariot et des barres
 - [x] Swing-up par contrôle de l'énergie (pendule simple)
 - [x] Swing-up du double pendule (optimisation de trajectoire + TVLQR)
-- [ ] Détection d'échec et nouvelle tentative de swing-up
+- [x] Détection d'échec et nouvelle tentative de swing-up
 - [x] Observateur de Kalman (mesure de x et θ seulement)
-- [ ] Validation du modèle dans Simscape Multibody
+- [x] Validation du modèle dans Simscape Multibody
 
 ---
 
