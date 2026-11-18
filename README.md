@@ -82,7 +82,7 @@ L'inversion de la matrice de masse donne la représentation d'état $\dot{X} = A
 
 En boucle ouverte, le pendule tombe puis se balance autour de sa position basse. Le chariot bouge en sens inverse du pendule : le centre de gravité commun reste quasiment immobile.
 
-Validation indépendante par Simscape Multibody
+### Validation indépendante par Simscape Multibody
 
 Le même système a été reconstruit dans Simscape Multibody (pendule_simscape.slx), sans écrire aucune équation : une glissière pour le chariot, un pivot pour la barre, des solides et la gravité. Le logiciel calcule lui-même la dynamique. Les deux modèles, construits indépendamment, sont comparés en chute libre depuis θ₀ = 0,05 rad pendant 3 s (validation_simscape.m).
 
@@ -363,14 +363,7 @@ animate_pendulum    % GIF de la stabilisation (choisir 'simple' ou 'double')
 | `sig_w` | `kalman_pendule` | confiance du filtre dans le modèle [N] |
 
  
-## 8. Prochaines étapes
- 
-- [x] Animation du chariot et des barres
-- [x] Swing-up par contrôle de l'énergie (pendule simple)
-- [x] Swing-up du double pendule (optimisation de trajectoire + TVLQR)
-- [x] Détection d'échec et nouvelle tentative de swing-up
-- [x] Observateur de Kalman (mesure de x et θ seulement)
-- [x] Validation du modèle dans Simscape Multibody
+
 
 ---
 
