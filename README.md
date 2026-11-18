@@ -268,7 +268,7 @@ Les angles suivent la trajectoire planifiée et finissent à +0,34°. La correct
  
 Le LQR seul ne tolère que 15° d'écart près de la position haute, alors que le TVLQR rejette une erreur de 45° au départ. **Une même erreur n'a pas le même poids selon l'endroit de la trajectoire** : en bas, le système est stable et le contrôleur a le temps de corriger avant la phase critique.
  
-**Limite identifiée :** à 80°, l'erreur de suivi n'est pas résorbée avant la fin de la manœuvre et l'état final sort du domaine où le LQR de la position haute peut stabiliser le système. Comme le gain TVLQR rejoint exactement le gain LQR à t = T, ce n'est pas la bascule qui est en cause : il faudrait un suivi plus serré, ou une détection de l'échec suivie d'une nouvelle tentative.
+**Limite identifiée :** à 80°, l'erreur de suivi n'est pas résorbée avant la fin de la manœuvre et l'état final sort du domaine de stabilisation du LQR haut. Augmenter le poids des angles (Q = 1000) aggrave l'échec : le contrôleur réclame davantage de force et le moteur reste saturé à 10 N pendant plus d'une seconde. La limite vient donc de la saturation de l'actionneur. Pour aller au-delà, il faudrait replanifier une nouvelle trajectoire depuis l'état réel, ou disposer d'un moteur plus puissant.
 
 ## 6. Utilisation
  
