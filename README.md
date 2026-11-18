@@ -270,6 +270,7 @@ Le LQR seul ne tolère que 15° d'écart près de la position haute, alors que l
 
 - [x] Animation du chariot et des barres
 - [x] Swing-up par contrôle de l'énergie (pendule simple)
+- [x] Swing-up du double pendule (optimisation de trajectoire + TVLQR)
 - [ ] Observateur de Kalman (mesure de x et θ seulement)
 - [ ] Validation du modèle dans Simscape Multibody
 
