@@ -299,9 +299,7 @@ animate_pendulum    % GIF de la stabilisation (choisir 'simple' ou 'double')
 | `dth0` | `tvlqr_double` | perturbation initiale de la barre inférieure [deg] |
  
  
-<!-- ============================================================
-     BLOC 3 : la liste de "## 7. Prochaines étapes" complète
-     ============================================================ -->
+## 7. Prochaines étapes
  
 - [x] Animation du chariot et des barres
 - [x] Swing-up par contrôle de l'énergie (pendule simple)
