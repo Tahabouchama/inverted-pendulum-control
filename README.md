@@ -266,11 +266,47 @@ Le LQR seul ne tolère que 15° d'écart près de la position haute, alors que l
  
 **Limite identifiée :** la bascule vers le LQR est déclenchée à un instant fixe (t = 3 s). À 80°, l'erreur n'est pas résorbée à temps et le LQR reçoit un état hors de sa zone de validité. Une bascule conditionnée à l'état (comme pour le pendule simple) rendrait le système plus sûr.
 
-## 6. Prochaines étapes
-
+## 6. Utilisation
+ 
+**Prérequis :** MATLAB avec Symbolic Math Toolbox et Control System Toolbox. L'Optimization Toolbox est nécessaire pour le swing-up du double pendule.
+ 
+Tous les scripts se lancent depuis le dossier `src/`. Les scripts `derive_*` génèrent des fonctions (`cartpole_*.m`, `nlink_*.m`, `nlink_model.mat`) utilisées par les scripts suivants : ils doivent donc être lancés en premier.
+ 
+```matlab
+cd src
+ 
+% --- Pendule simple ---
+derive_eom          % modèle, linéarisation et validation
+lqr_pendule         % stabilisation LQR (régler angle0 et Fmax en tête de script)
+swingup_pendule     % swing-up par énergie puis LQR (génère un GIF)
+ 
+% --- Double pendule (derive_eom_nlink.m avec N = 2) ---
+derive_eom_nlink    % modèle à N barres
+lqr_double          % stabilisation LQR
+traj_opt_double     % recherche de la trajectoire de swing-up (~1 min, fmincon)
+tvlqr_double        % suivi de la trajectoire par TVLQR (régler dth0 pour perturber)
+ 
+% --- Animations ---
+animate_pendulum    % GIF de la stabilisation (choisir 'simple' ou 'double')
+```
+ 
+| Paramètre | Script | Rôle |
+|---|---|---|
+| `angle0` | `lqr_pendule`, `lqr_double`, `animate_pendulum` | inclinaison initiale [deg] |
+| `Fmax` | tous les scripts de commande | saturation du moteur [N] |
+| `kE`, `thSw`, `dthSw` | `swingup_pendule` | gain de pompage et seuils de bascule vers le LQR |
+| `T`, `Nn` | `traj_opt_double` | durée de la manœuvre et nombre de noeuds |
+| `dth0` | `tvlqr_double` | perturbation initiale de la barre inférieure [deg] |
+ 
+ 
+<!-- ============================================================
+     BLOC 3 : la liste de "## 7. Prochaines étapes" complète
+     ============================================================ -->
+ 
 - [x] Animation du chariot et des barres
 - [x] Swing-up par contrôle de l'énergie (pendule simple)
 - [x] Swing-up du double pendule (optimisation de trajectoire + TVLQR)
+- [ ] Bascule vers le LQR conditionnée à l'état pour le double pendule
 - [ ] Observateur de Kalman (mesure de x et θ seulement)
 - [ ] Validation du modèle dans Simscape Multibody
 
