@@ -1,9 +1,9 @@
-# Stabilisation LQR d'un pendule inversé simple et double sur chariot
+# Swing-up et stabilisation d'un pendule inversé simple et double sur chariot
 
 Modélisation par les équations de Lagrange, commande optimale LQR et étude des limites en présence de saturation de l'actionneur — MATLAB.
 
 <p align="center">
-  <img src="figures/09_anim_double.gif" width="650">
+  <img src="figures/11_anim_swingup_double" width="650">
 </p>
 
 ## Points clés
@@ -177,26 +177,99 @@ Les gains sur les angles sont de **signes opposés** : le contrôleur réagit à
 
 Contrairement au pendule simple, le double pendule **ne tolère aucune saturation** : dès que la force demandée dépasse 10 N, la coordination fine entre les deux barres est rompue et le mode instable rapide diverge en une fraction de seconde. Les gains élevés rendent aussi ce système beaucoup plus sensible au bruit de mesure.
 
-## 5. Utilisation
-
-Prérequis : MATLAB avec Symbolic Math Toolbox et Control System Toolbox.
-
-```matlab
-cd src
-derive_eom          % génère le modèle du pendule simple
-lqr_pendule         % commande LQR du pendule simple
-
-% Dans derive_eom_nlink.m, régler N = 2, puis :
-derive_eom_nlink    % génère le modèle du double pendule
-lqr_double          % commande LQR du double pendule
-```
-
-Les paramètres `angle0` (angle initial) et `Fmax` (saturation) se modifient en tête de section dans les scripts de commande.
+---
+ 
+## 5. Swing-up : partir de la position basse
+ 
+Le LQR ne fonctionne qu'au voisinage de la verticale (45° pour le pendule simple, 15° pour le double). Pour amener le système depuis la position **basse**, il faut une commande non linéaire, puis une bascule vers le LQR.
+ 
+### 5.1 Pendule simple : pompage d'énergie
+ 
+<p align="center">
+  <img src="figures/10_anim_swingup.gif" width="650">
+</p>
+L'énergie du pendule (θ = 0 en haut) vaut :
+ 
+$$E = \tfrac{1}{2}(J+ml^2)\dot{\theta}^2 + mgl\cos\theta$$
+ 
+Elle vaut −mgl en bas et +mgl en haut (cible $E_{ref}$). En dérivant et en utilisant l'équation du pendule :
+ 
+$$\dot{E} = -ml\,\ddot{x}\,\dot{\theta}\cos\theta$$
+ 
+L'énergie ne varie que par l'accélération du chariot. On choisit donc :
+ 
+$$\ddot{x} = k_E\,(E - E_{ref})\,\mathrm{sign}(\dot{\theta}\cos\theta)$$
+ 
+Le chariot accélère toujours dans le sens qui injecte de l'énergie, et le pompage s'arrête de lui-même quand E atteint $E_{ref}$. Le LQR prend la main lorsque |θ| < 25° et |θ̇| < 2 rad/s.
+ 
+| Résultat | Valeur |
+|---|---|
+| Bascule vers le LQR | t = 3,97 s |
+| Force maximale | 6,4 N (pas de saturation) |
+| Angle final | −0,01° |
+ 
+<p align="center">
+  <img src="figures/13_swingup_simple.png" width="600">
+</p>
+L'énergie monte par paliers, un par oscillation. Les paliers plats correspondent aux points de rebroussement (θ̇ = 0), où aucune énergie ne peut être injectée. Le chariot s'écarte jusqu'à 0,8 m : sur un banc réel, il faudrait renforcer le recentrage, au prix d'une montée plus lente.
+ 
+### 5.2 Double pendule : optimisation de trajectoire + TVLQR
+ 
+Pour le double pendule, atteindre l'énergie maximale ne suffit pas : de nombreuses configurations (dont des mouvements chaotiques) ont la même énergie totale. Les deux barres doivent arriver en haut **ensemble**, avec des vitesses quasi nulles.
+ 
+<p align="center">
+  <img src="figures/11_anim_swingup_double.gif" width="650">
+</p>
+**Étape 1 — Optimisation de trajectoire** (`traj_opt_double.m`). La manœuvre de 3 s est discrétisée en 61 instants. `fmincon` cherche l'état et la force à chaque instant en minimisant l'effort $\int F^2\,dt$, sous les contraintes :
+- dynamique respectée entre deux instants (collocation par la règle des trapèzes) ;
+- départ : les deux barres pendues ; arrivée : les deux barres debout, immobiles ;
+- |F| ≤ 20 N et |x| ≤ 1 m.
+| Résultat | Valeur |
+|---|---|
+| Convergence | exitflag = 1, 59 s de calcul |
+| Force maximale | 8,3 N |
+| Déplacement max du chariot | 0,50 m |
+ 
+La trajectoire trouvée tient donc dans les limites du moteur (10 N) et de rails de ±0,5 m.
+ 
+<p align="center">
+  <img src="figures/14_traj_opt_double.png" width="600">
+</p>
+Rejouée **en boucle ouverte** sur le modèle complet, cette commande diverge dès l'approche de la position haute (θ₂ = 404° en fin de manœuvre) : le système est chaotique et les petites erreurs d'approximation grandissent très vite près de l'équilibre instable.
+ 
+**Étape 2 — Suivi par TVLQR** (`tvlqr_double.m`). La commande devient :
+ 
+$$F(t) = F_{plan}(t) - K(t)\,\big(X(t) - X_{plan}(t)\big)$$
+ 
+Le gain K(t) varie dans le temps. Il est obtenu en linéarisant le modèle le long de la trajectoire, puis en résolvant l'équation de Riccati différentielle **à rebours**, à partir de la solution du LQR de la position haute :
+ 
+$$-\dot{S} = A(t)^\top S + S A(t) - S B(t) R^{-1} B(t)^\top S + Q, \qquad K(t) = R^{-1} B(t)^\top S(t)$$
+ 
+À la fin de la manœuvre, K(t) coïncide avec le gain LQR haut (écart 8,8e-9) : la bascule se fait sans discontinuité.
+ 
+<p align="center">
+  <img src="figures/12_tvlqr_double.png" width="600">
+</p>
+Les angles suivent la trajectoire planifiée et finissent à +0,34°. La correction est faible pendant la phase basse, puis importante entre 1,4 et 1,8 s, quand les barres passent l'horizontale : c'est précisément là que la boucle ouverte divergeait.
+ 
+### 5.3 Robustesse : perturbation de la barre inférieure au départ
+ 
+| Perturbation initiale | Résultat | Chariot max |
+|---|---|---|
+| 0° à 10° | réussi | ≤ 0,5 m |
+| 20° | réussi | 0,32 m |
+| 45° | réussi, rails légèrement dépassés | ≈ 0,55 m |
+| 75° | réussi en simulation, rails dépassés | 0,8 m |
+| 80° | **échec** | — |
+ 
+Le LQR seul ne tolère que 15° d'écart près de la position haute, alors que le TVLQR rejette une erreur de 45° au départ. **Une même erreur n'a pas le même poids selon l'endroit de la trajectoire** : en bas, le système est stable et le contrôleur a le temps de corriger avant la phase critique.
+ 
+**Limite identifiée :** la bascule vers le LQR est déclenchée à un instant fixe (t = 3 s). À 80°, l'erreur n'est pas résorbée à temps et le LQR reçoit un état hors de sa zone de validité. Une bascule conditionnée à l'état (comme pour le pendule simple) rendrait le système plus sûr.
 
 ## 6. Prochaines étapes
 
 - [x] Animation du chariot et des barres
-- [ ] Swing-up par contrôle de l'énergie (pendule simple)
+- [x] Swing-up par contrôle de l'énergie (pendule simple)
 - [ ] Observateur de Kalman (mesure de x et θ seulement)
 - [ ] Validation du modèle dans Simscape Multibody
 
